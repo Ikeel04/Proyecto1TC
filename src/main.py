@@ -6,7 +6,7 @@ Se espera que el usuario proporcione un archivo con expresiones regulares.
 from utils.io import procesar_archivo
 
 def main():
-    archivo = "proyecto.txt"
+    archivo = "src/proyecto.txt"
     procesar_archivo(archivo)
 
 if __name__ == "__main__":
