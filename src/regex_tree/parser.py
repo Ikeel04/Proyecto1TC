@@ -3,8 +3,14 @@ Módulo parser: construcción y visualización del árbol sintáctico
 a partir de una expresión regular en notación postfija.
 """
 
+import os
 from graphviz import Digraph
 from .node import Nodo
+
+# Carpeta donde se guardarán las imágenes
+RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
+os.makedirs(RESULTS_DIR, exist_ok=True)
+
 
 def construir_arbol(postfix: list[str]) -> Nodo:
     """
@@ -34,7 +40,8 @@ def construir_arbol(postfix: list[str]) -> Nodo:
 
 def dibujar_arbol(raiz: Nodo, filename: str):
     """
-    Dibuja el árbol sintáctico usando Graphviz y lo exporta como PNG.
+    Dibuja el árbol sintáctico usando Graphviz y lo exporta como PNG
+    en la carpeta src/results.
     """
     dot = Digraph()
 
@@ -50,4 +57,6 @@ def dibujar_arbol(raiz: Nodo, filename: str):
             agregar_nodos(nodo.derecha)
 
     agregar_nodos(raiz)
-    dot.render(filename, format='png', cleanup=True)
+
+    output_path = os.path.join(RESULTS_DIR, filename)
+    dot.render(output_path, format='png', cleanup=True)

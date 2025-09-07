@@ -37,3 +37,12 @@ def acepta(fragment, w: str) -> bool:
         if not current:
             return False
     return any(st in current for st in fragment.accepts)
+
+def acepta_afd(start_dfa, w: str) -> bool:
+    current = start_dfa
+    for ch in w:
+        if ch not in current.edges:
+            return False
+        current = current.edges[ch]
+    return current.is_accept
+

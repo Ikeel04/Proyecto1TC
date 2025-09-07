@@ -1,4 +1,1 @@
-(a*|b*)+ aaa
-((ε|a)|b*)* abba
-(a|b)*abb(a|b)* bbabbba
-0?(1?)?0* 10
+(b|b)*abb(a|b)* babbaaaa
