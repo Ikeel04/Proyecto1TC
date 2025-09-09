@@ -21,20 +21,25 @@ def construir_arbol(postfix: list[str]) -> Nodo:
     for token in postfix:
         if token in {'*', '+', '?'}:  # operadores unarios
             if not pila:
-                raise ValueError(f"Falta operando para '{token}'")
+                raise ValueError(f"Falta operando para operador unario '{token}'")
             nodo = Nodo(token, izquierda=pila.pop())
             pila.append(nodo)
+
         elif token in {'.', '|'}:  # operadores binarios
             if len(pila) < 2:
-                raise ValueError(f"Faltan operandos para '{token}'")
+                raise ValueError(f"Faltan operandos para operador binario '{token}'")
             der = pila.pop()
             izq = pila.pop()
             nodo = Nodo(token, izquierda=izq, derecha=der)
             pila.append(nodo)
-        else:  # operando (símbolo del alfabeto o ε)
-            pila.append(Nodo(token))
+
+        else:
+            # token literal (puede ser 'a', 'ε', 'if', 'else', '\{', etc.)
+            pila.append(Nodo(str(token)))
+
     if len(pila) != 1:
-        raise ValueError("Expresión postfija mal balanceada")
+        raise ValueError(f"Expresión postfija mal balanceada. Pila final: {pila}")
+
     return pila[-1]
 
 
@@ -48,7 +53,8 @@ def dibujar_arbol(raiz: Nodo, filename: str):
     def agregar_nodos(nodo: Nodo):
         if nodo is None:
             return
-        dot.node(str(nodo.id), nodo.valor)
+        # usar str() por si el valor es multicaracter
+        dot.node(str(nodo.id), str(nodo.valor))
         if nodo.izquierda:
             dot.edge(str(nodo.id), str(nodo.izquierda.id))
             agregar_nodos(nodo.izquierda)

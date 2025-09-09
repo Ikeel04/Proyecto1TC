@@ -3,46 +3,51 @@ Módulo shunting_yard: convierte expresiones regulares de notación infix
 a notación postfix (RPN) usando el algoritmo de Shunting Yard.
 """
 
-def shunting_yard(regex: str) -> list[str]:
+from typing import List
+
+def shunting_yard(tokens: List[str]) -> List[str]:
+    """
+    Convierte una lista de tokens en notación infix a notación postfix (RPN).
+    Tokens válidos:
+      - literales (if, else, \{, \}, ε, etc.)
+      - operadores (*, +, ?, ., |)
+      - paréntesis ( )
+    """
     salida, pila = [], []
-    precedencia = {'*': 3, '.': 2, '|': 1}
+    precedencia = {'*': 3, '+': 3, '?': 3, '.': 2, '|': 1}
     operadores = set(precedencia.keys())
-    i = 0
-    while i < len(regex):
-        c = regex[i]
-        if c == ' ':
-            i += 1
-            continue
-        if c == '\\':  # manejar escapes
-            if i + 1 < len(regex):
-                salida.append('\\' + regex[i + 1])
-                i += 2
-            else:
-                raise ValueError("Secuencia de escape incompleta")
-        elif c.isalnum() or c in {'ε', '_'}:
-            salida.append(c)
-            i += 1
-        elif c == '(':
-            pila.append(c)
-            i += 1
-        elif c == ')':
+
+    for token in tokens:
+        if token in operadores:
+            if token in {'*', '+', '?'}:  # operadores unarios (derecha-asociativos)
+                while (pila and pila[-1] in operadores and
+                       precedencia[token] < precedencia[pila[-1]]):
+                    salida.append(pila.pop())
+            else:  # binarios (izquierda-asociativos)
+                while (pila and pila[-1] in operadores and
+                       precedencia[token] <= precedencia[pila[-1]]):
+                    salida.append(pila.pop())
+            pila.append(token)
+
+        elif token == '(':
+            pila.append(token)
+
+        elif token == ')':
             while pila and pila[-1] != '(':
                 salida.append(pila.pop())
             if not pila:
                 raise ValueError("Falta paréntesis de apertura")
-            pila.pop()
-            i += 1
-        elif c in operadores:
-            while (pila and pila[-1] in operadores and
-                   precedencia[c] <= precedencia[pila[-1]]):
-                salida.append(pila.pop())
-            pila.append(c)
-            i += 1
+            pila.pop()  # eliminar '('
+
         else:
-            raise ValueError(f"Carácter no reconocido: '{c}'")
+            # literal o símbolo especial (if, else, ε, \{, \}, etc.)
+            salida.append(token)
+
+    # vaciar la pila
     while pila:
         top = pila.pop()
         if top in {'(', ')'}:
             raise ValueError("Paréntesis desbalanceados.")
         salida.append(top)
+
     return salida
