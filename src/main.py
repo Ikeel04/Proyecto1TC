@@ -2,7 +2,6 @@
 Punto de entrada del proyecto.
 Se espera que el usuario proporcione un archivo con expresiones regulares.
 """
-
 from utils.io import procesar_archivo
 
 def main():

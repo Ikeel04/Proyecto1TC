@@ -19,7 +19,7 @@ def shunting_yard(regex: str) -> list[str]:
                 i += 2
             else:
                 raise ValueError("Secuencia de escape incompleta")
-        elif c.isalnum() or c == 'ε':
+        elif c.isalnum() or c in {'ε', '_'}:
             salida.append(c)
             i += 1
         elif c == '(':

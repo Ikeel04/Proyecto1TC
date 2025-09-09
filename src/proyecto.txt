@@ -1,1 +1,1 @@
-(b|b)*abb(a|b)* babbaaaa
+((a|b)_ε(c|ε)+)|(d?ε+(a|εb)_) a_c

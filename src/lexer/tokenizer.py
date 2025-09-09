@@ -60,8 +60,8 @@ def insertar_concatenaciones(expr: str) -> str:
                 break
         # regla de concatenación implícita
         if (
-            (c1 in {'*', '+', '?', ')', 'ε'} or c1.isalnum()) and
-            (c2 in {'(', 'ε'} or c2.isalnum() or c2 == '\\')
+            (c1 in {'*', '+', '?', ')', 'ε', '_'} or c1.isalnum()) and
+            (c2 in {'(', 'ε', '_'} or c2.isalnum() or c2 == '\\')
         ):
             resultado += '.'
         i += 1
