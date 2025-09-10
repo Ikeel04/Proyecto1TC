@@ -10,6 +10,7 @@ from lexer.tokenizer import (
     expandir_operadores,
     insertar_concatenaciones_tokens,
     tokenize,
+    tokenizar_cadena,
 )
 from lexer.shunting_yard import shunting_yard
 from regex_tree.parser import construir_arbol, dibujar_arbol
@@ -126,7 +127,7 @@ def procesar_archivo(nombre_archivo: str):
             dibujar_afd_min(start_min, min_states, f"afd_min_expr_{i+1}")
 
             # 9) procesar cadena w como lista de caracteres
-            tokens_w = list(w_literal) if w_literal else []
+            tokens_w = tokenizar_cadena(w_literal) if w_literal else []
             print("Tokens w:", tokens_w)
 
             # 10) simulación

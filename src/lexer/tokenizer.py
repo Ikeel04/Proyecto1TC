@@ -50,22 +50,51 @@ def insertar_concatenaciones_tokens(tokens: list[str]) -> list[str]:
     if not tokens:
         return tokens
 
-    resultado = []
+    out: list[str] = []
     for i in range(len(tokens) - 1):
-        t1, t2 = tokens[i], tokens[i+1]
-        resultado.append(t1)
+        t1, t2 = tokens[i], tokens[i + 1]
+        out.append(t1)
 
-        # condiciones para concatenación
-        if (
-            t1 not in {'(', '|', '.'} and
-            t2 not in {')', '|', '*', '+', '?', '.'}
-        ):
-            # no partimos bloques escapados \{ ... \}
-            if not (t1 == '\\{' or t2 == '\\}'):
-                resultado.append('.')
+        prev_es_fin = _es_atomo(t1) or t1 in {')', '*', '+', '?'}
+        next_es_ini = _es_atomo(t2) or t2 == '('
+        if prev_es_fin and next_es_ini:
+            out.append('.')
 
-    resultado.append(tokens[-1])
-    return resultado
+    out.append(tokens[-1])
+    return out
+
+def _es_atomo(tok: str) -> bool:
+    # Todo lo que NO es operador/paréntesis se considera átomo:
+    # - literales alfanuméricos ('a', 'b', 'if', 'else', 't', 'n', ...)
+    # - 'ε'
+    # - tokens escapados ('\\{', '\\}', '\\?', '\\.', ...)
+    return tok not in {'|', '.', '*', '+', '?', '(', ')'}
+
+def tokenizar_cadena(s: str) -> list[str]:
+    """
+    Tokeniza la cadena w con las MISMAS reglas de 'tokenize' para palabras.
+    - Si ve una palabra reservada completa (if, else, while, for) la emite como 1 token.
+    - Si ve otras letras, las separa por carácter (como hace 'tokenize' para no reservadas).
+    - El resto de símbolos (paréntesis, llaves, etc.) salen como 1 token cada uno.
+    """
+    tokens = []
+    i = 0
+    while i < len(s):
+        c = s[i]
+        if c.isalpha():
+            j = i
+            while j < len(s) and s[j].isalpha():
+                j += 1
+            palabra = s[i:j]
+            if palabra in RESERVED_WORDS:
+                tokens.append(palabra)
+            else:
+                tokens.extend(list(palabra))
+            i = j
+        else:
+            tokens.append(c)
+            i += 1
+    return tokens
 
 
 def expandir_operadores(expr: str) -> str:

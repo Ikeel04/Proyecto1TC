@@ -1,10 +1,34 @@
-"""
+# automata/thompson.py
+r"""
 Construcción de un AFN a partir de un árbol sintáctico usando
 el algoritmo de Thompson.
+
+Notas:
+- Las hojas del árbol pueden ser literales como 'a', 'if', 'else', 'ε', '\{', '\}', '\(' ...
+- Durante la construcción des-escapamos: '\{' -> '{', '\}' -> '}', '\?' -> '?', '\.' -> '.', etc.
+- 'ε' se interpreta como transición epsilon (None).
 """
 
 from .state import State
 from .fragment import Fragment
+
+
+def _decode_literal(symbol: str):
+    """
+    Convierte el token de la ER a la etiqueta real de transición:
+      - 'ε'  -> None  (transición epsilon)
+      - tokens que empiezan con '\\' se des-escapan:
+        '\\n' -> '\n', '\\t' -> '\t', '\\r' -> '\r', '\\\\' -> '\\', '\\s' -> ' ',
+        y genérico: '\\{' -> '{', '\\}' -> '}', '\\(' -> '(', '\\)' -> ')', '\\?' -> '?', '\\.' -> '.'
+      - el resto se deja tal cual (por ejemplo 'a', 'if', 'else').
+    """
+    if symbol == 'ε':
+        return None
+    if symbol.startswith('\\') and len(symbol) >= 2:
+        s = symbol[1:]
+        mapa = {'n': '\n', 't': '\t', 'r': '\r', '\\': '\\', 's': ' '}
+        return mapa.get(s, s)
+    return symbol
 
 
 def _lit(symbol: str) -> Fragment:
@@ -13,12 +37,13 @@ def _lit(symbol: str) -> Fragment:
     """
     s = State()
     f = State()
-    if symbol == 'ε':
-        # transición epsilon directa
+    decoded = _decode_literal(symbol)
+    if decoded is None:
+        # transición epsilon
         s.eps.add(f)
     else:
-        # transición con símbolo (puede ser 'a', 'if', '\{', etc.)
-        s.edges.setdefault(symbol, set()).add(f)
+        # transición con símbolo real (p. ej., '{', '}', 'if', 'else', 'a', ...)
+        s.edges.setdefault(decoded, set()).add(f)
     return Fragment(s, {f})
 
 
@@ -59,16 +84,14 @@ def _star(a: Fragment) -> Fragment:
 
 def _plus(a: Fragment) -> Fragment:
     """
-    Uno o más (A+).
-    Implementado como A concatenado con A*.
+    Uno o más (A+): A concatenado con A*
     """
     return _concat(a, _star(a))
 
 
 def _optional(a: Fragment) -> Fragment:
     """
-    Cero o uno (A?).
-    Implementado como A | ε.
+    Cero o uno (A?): A | ε
     """
     return _alt(a, _lit('ε'))
 
@@ -91,7 +114,7 @@ def construir_afn_desde_arbol(nodo) -> Fragment:
 
     v = nodo.valor
 
-    # caso hoja
+    # caso hoja (literal/ε)
     if nodo.izquierda is None and nodo.derecha is None:
         return _lit(v)
 
@@ -113,5 +136,4 @@ def construir_afn_desde_arbol(nodo) -> Fragment:
     elif v == '?':
         return _optional(construir_afn_desde_arbol(nodo.izquierda))
 
-    # si llegó aquí, es un operador inesperado
     raise ValueError(f"Operador no soportado en árbol: {v}")
